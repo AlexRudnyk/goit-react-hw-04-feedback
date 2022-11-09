@@ -1,61 +1,65 @@
-import React, { Component } from 'react';
+import { useState } from 'react';
 import { Container } from './App.styled';
 import Statistics from './statistics';
 import FeedbackOptions from './feedbackOptions';
 import Section from './section';
 import Notification from './notification';
 
-class App extends Component {
-  state = {
-    good: 0,
-    neutral: 0,
-    bad: 0,
+function App() {
+  const [good, setGood] = useState(0);
+  const [neutral, setNeutral] = useState(0);
+  const [bad, setBad] = useState(0);
+
+  const feedbackName = { good, neutral, bad };
+  const options = Object.keys(feedbackName);
+
+  const makesVotesSum = () => {
+    return good + neutral + bad;
   };
 
-  makesVotesSum = () => {
-    return this.state.good + this.state.neutral + this.state.bad;
+  const positiveFeedbackPercentage = () => {
+    return (good / makesVotesSum()) * 100 || 0;
   };
 
-  makesPositiveFeedbackPercentage = () => {
-    return (this.state.good / this.makesVotesSum()) * 100 || 0;
-  };
-
-  leaveFeedback = event => {
+  const leaveFeedback = event => {
     const targetBtn = event.currentTarget.name;
-    this.setState({
-      [targetBtn]: this.state[targetBtn] + 1,
-    });
+
+    switch (targetBtn) {
+      case 'good':
+        setGood(state => state + 1);
+        break;
+      case 'neutral':
+        setNeutral(state => state + 1);
+        break;
+      case 'bad':
+        setBad(state => state + 1);
+        break;
+
+      default:
+        return;
+    }
   };
 
-  render() {
-    const options = Object.keys(this.state);
-    const totalVotes = this.makesVotesSum();
-    const positiveFeedbackPercentage = this.makesPositiveFeedbackPercentage();
-
-    return (
-      <Container>
-        <Section title="Please leave feedback">
-          <FeedbackOptions
-            options={options}
-            onLeaveFeedback={this.leaveFeedback}
+  return (
+    <Container>
+      <Section title="Please leave feedback">
+        <FeedbackOptions options={options} onLeaveFeedback={leaveFeedback} />
+      </Section>
+      <Section title="Statistics">
+        {makesVotesSum() === 0 ? (
+          <Notification message="There is no feedback" />
+        ) : (
+          <Statistics
+            good={good}
+            neutral={neutral}
+            bad={bad}
+            total={makesVotesSum()}
+            positivePercentage={positiveFeedbackPercentage()}
           />
-        </Section>
-        <Section title="Statistics">
-          {totalVotes === 0 ? (
-            <Notification message="There is no feedback" />
-          ) : (
-            <Statistics
-              good={this.state.good}
-              neutral={this.state.neutral}
-              bad={this.state.bad}
-              total={totalVotes}
-              positivePercentage={positiveFeedbackPercentage}
-            />
-          )}
-        </Section>
-      </Container>
-    );
-  }
+        )}
+      </Section>
+    </Container>
+  );
 }
 
 export default App;
